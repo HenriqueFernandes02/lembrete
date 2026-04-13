@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lembretes Pendentes — Znuny → Digisac</title>
+    <meta name="description" content="Painel de controle para envio de lembretes de chamados pendentes via WhatsApp">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="/static/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+    <!-- HEADER -->
+    <header class="header">
+        <div class="header-left">
+            <div class="logo">
+                <div class="logo-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                    </svg>
+                </div>
+                <div>
+                    <h1>Lembretes Pendentes</h1>
+                    <span class="subtitle">Znuny → Digisac</span>
+                </div>
+            </div>
+        </div>
+        <div class="header-right">
+            <div class="status-badges">
+                <span class="badge" id="badge-znuny">
+                    <span class="badge-dot"></span>
+                    Znuny
+                </span>
+                <span class="badge" id="badge-digisac">
+                    <span class="badge-dot"></span>
+                    Digisac
+                </span>
+            </div>
+            <span class="last-update" id="last-update">Não atualizado</span>
+        </div>
+    </header>
+
+    <!-- NAVIGATION -->
+    <nav class="nav-tabs">
+        <button class="nav-item active" data-tab="dashboard">Dashboard</button>
+        <button class="nav-item" data-tab="clients">Clientes</button>
+        <button class="nav-item" data-tab="schedules">Agendamentos</button>
+        <button class="nav-item" data-tab="history">Histórico</button>
+        <button class="nav-item" data-tab="reports">Relatórios</button>
+        <button class="nav-item" data-tab="settings">Configurações</button>
+    </nav>
+
+    <!-- MAIN -->
+    <main class="main">
+        <!-- TAB: DASHBOARD -->
+        <section class="tab-content" id="tab-dashboard">
+            <!-- CARDS DE RESUMO -->
+            <section class="summary-cards" id="summary-cards">
+                <div class="card card-tickets">
+                    <div class="card-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                            <polyline points="14 2 14 8 20 8" />
+                            <line x1="16" y1="13" x2="8" y2="13" />
+                            <line x1="16" y1="17" x2="8" y2="17" />
+                            <polyline points="10 9 9 9 8 9" />
+                        </svg>
+                    </div>
+                    <div class="card-content">
+                        <span class="card-value" id="total-tickets">—</span>
+                        <span class="card-label">Chamados Pendentes</span>
+                    </div>
+                </div>
+                <div class="card card-clients">
+                    <div class="card-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                            <circle cx="9" cy="7" r="4" />
+                            <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                        </svg>
+                    </div>
+                    <div class="card-content">
+                        <span class="card-value" id="total-clients">—</span>
+                        <span class="card-label">Clientes Únicos</span>
+                    </div>
+                </div>
+                <div class="card card-sent">
+                    <div class="card-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="20 6 9 17 4 12" />
+                        </svg>
+                    </div>
+                    <div class="card-content">
+                        <span class="card-value" id="total-sent-today">—</span>
+                        <span class="card-label">Enviados Hoje</span>
+                    </div>
+                </div>
+                <div class="card card-scheduled">
+                    <div class="card-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10" />
+                            <polyline points="12 6 12 12 16 14" />
+                        </svg>
+                    </div>
+                    <div class="card-content">
+                        <span class="card-value" id="total-scheduled">—</span>
+                        <span class="card-label">Agendamentos</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- GRAFICOS -->
+            <section class="dashboard-grid">
+                <div class="card chart-card">
+                    <h3>Envios nos Últimos 7 Dias</h3>
+                    <canvas id="sentChart"></canvas>
+                </div>
+                <div class="card metrics-card">
+                    <h3>Escalonamentos do Período</h3>
+                    <div class="metric-big">
+                        <span id="metric-escalated-week">0</span>
+                        <small>chamados para Jean</small>
+                    </div>
+                </div>
+            </section>
+        </section>
+
+        <!-- TAB: CLIENTES -->
+        <section class="tab-content" id="tab-clients" style="display:none">
+            <!-- BARRA DE AÇÕES -->
+            <section class="actions-bar">
+                <div class="actions-left">
+                    <button class="btn btn-primary" id="btn-refresh" onclick="refreshAll()">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18"
+                            height="18">
+                            <polyline points="23 4 23 10 17 10" />
+                            <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
+                        </svg>
+                        Atualizar Dados
+                    </button>
+                    <button class="btn btn-success" id="btn-send-all" onclick="showConfirmationModal()" disabled>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18"
+                            height="18">
+                            <line x1="22" y1="2" x2="11" y2="13" />
+                            <polygon points="22 2 15 22 11 13 2 9 22 2" />
+                        </svg>
+                        Enviar Todos
+                    </button>
+                </div>
+                <div class="actions-right">
+                    <div class="search-box">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16"
+                            height="16">
+                            <circle cx="11" cy="11" r="8" />
+                            <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                        </svg>
+                        <input type="text" id="search-clients" placeholder="Buscar cliente ou ID..."
+                            oninput="filterClients()">
+                    </div>
+                </div>
+            </section>
+
+            <!-- LOADING -->
+            <div class="loading-overlay" id="loading" style="display:none">
+                <div class="spinner"></div>
+                <p id="loading-text">Carregando dados...</p>
+            </div>
+
+            <!-- TABELA DE CHAMADOS -->
+            <section class="tickets-section" id="tickets-section" style="display:none">
+                <div class="section-header">
+                    <h2>Chamados por Cliente</h2>
+                    <span class="section-badge" id="section-badge">0 clientes</span>
+                </div>
+                <div class="clients-grid" id="clients-grid">
+                    <!-- Gerado via JS -->
+                </div>
+            </section>
+        </section>
+
+        <!-- TAB: AGENDAMENTOS -->
+        <section class="tab-content" id="tab-schedules" style="display:none">
+            <section class="schedules-section" id="schedules-section">
+                <div class="section-header">
+                    <h2>Agendamentos</h2>
+                    <span class="section-badge" id="schedules-badge">0 agendamentos</span>
+                </div>
+                <div class="schedules-list" id="schedules-list">
+                    <p class="empty-state">Nenhum agendamento registrado.</p>
+                </div>
+            </section>
+        </section>
+
+        <!-- TAB: HISTÓRICO -->
+        <section class="tab-content" id="tab-history" style="display:none">
+            <section class="history-section" id="history-section">
+                <div class="section-header">
+                    <h2>Histórico de Envios</h2>
+                    <div class="section-header-actions">
+                        <input type="text" id="search-history" class="search-sm" placeholder="Buscar..."
+                            oninput="filterHistory()">
+                        <button class="btn btn-ghost btn-sm" onclick="clearHistory()">Limpar</button>
+                    </div>
+                </div>
+                <div class="history-list" id="history-list">
+                    <p class="empty-state">Nenhum envio registrado.</p>
+                </div>
+            </section>
+        </section>
+
+        <!-- TAB: RELATÓRIOS -->
+        <section class="tab-content" id="tab-reports" style="display:none">
+            <section class="reports-section" id="reports-section">
+                <div class="section-header"
+                    style="justify-content: space-between; display: flex; align-items: center; border-bottom: 1px solid #334155; padding-bottom: 16px; margin-bottom: 24px;">
+                    <div>
+                        <h2>Relatórios Consolidados</h2>
+                        <span style="font-size: 0.9rem; color: #94a3b8;">Baixe resumos de execuções ou liste chamados
+                            escalonados.</span>
+                    </div>
+                    <button class="btn btn-primary" onclick="downloadEscalationReportCSV()">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16"
+                            height="16" style="vertical-align: middle; margin-right: 4px;">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                            <polyline points="7 10 12 15 17 10" />
+                            <line x1="12" y1="15" x2="12" y2="3" />
+                        </svg>
+                        Baixar Escalonados (CSV)
+                    </button>
+                </div>
+                <div class="reports-list" id="reports-list">
+                    <p class="empty-state">Nenhum relatório gerado.</p>
+                </div>
+            </section>
+        </section>
+
+        <!-- TAB: CONFIGURAÇÕES -->
+        <section class="tab-content" id="tab-settings" style="display:none">
+            <section class="settings-section">
+                <div class="section-header">
+                    <h2>Configurações do Robô</h2>
+                </div>
+                <div class="card settings-card">
+                    <div class="form-group">
+                        <label for="template-text">Template da Mensagem de WhatsApp</label>
+                        <p class="field-help">Use as tags: <code>{nome}</code>, <code>{quantidade}</code>,
+                            <code>{lista_chamados}</code>
+                        </p>
+                        <textarea id="template-text" class="form-input" rows="8"></textarea>
+                    </div>
+
+                    <div class="form-group" style="margin-top: 24px;">
+                        <label for="note-template-text">Template da Nota Interna (Znuny)</label>
+                        <p class="field-help">Nota registrada de forma invisível ao cliente (em laranja) para documentar
+                            a tentativa. Tags: <code>{data}</code>, <code>{hora}</code>
+                            <textarea id="note-template-text" class="form-input" rows="4"></textarea>
+                    </div>
+
+                    <div class="form-group" style="margin-top: 24px;">
+                        <label for="escalation-owner">Atendente de Escalonamento Padrão</label>
+                        <p class="field-help">Login do usuário Znuny que receberá os chamados escalonados (limite
+                            atingido). Ex: <code>jean.figueiredo</code></p>
+                        <input type="text" id="escalation-owner" class="form-input" placeholder="jean.figueiredo" />
+                    </div>
+
+                    <div class="form-group" style="margin-top: 24px;">
+                        <label for="blocked-contacts">Lista de Bloqueio (Contatos Ignorados)</label>
+                        <p class="field-help">Nomes de contatos ou IDs do Digisac que <strong>nunca</strong> devem receber mensagens. Separe por vírgulas. Ex: <code>Bruno Silva, Seu Joao, 411bc...</code></p>
+                        <textarea id="blocked-contacts" class="form-input" rows="3" placeholder="Nomes ou IDs separados por vírgula..."></textarea>
+                    </div>
+
+                    <div class="form-group"
+                        style="margin-top: 24px; padding: 16px; background: #2f343c; border-radius: 8px;">
+                        <h3 style="margin-top: 0; margin-bottom: 16px; font-size: 1.1rem; color: #fdfdfd;">Opções de
+                            Envio</h3>
+
+                        <label style="display: flex; align-items: center; margin-bottom: 12px; cursor: pointer;">
+                            <input type="checkbox" id="toggle-whatsapp"
+                                style="margin-right: 10px; width: 18px; height: 18px; accent-color: var(--primary);">
+                            <span style="font-weight: 500;">Habilitar Envio de WhatsApp</span>
+                        </label>
+                        <p class="field-help" style="margin-top: -8px; margin-bottom: 16px; margin-left: 28px;">
+                            Se desmarcado, o robô vai simular o envio (não gasta créditos do Digisac).
+                        </p>
+
+                        <label style="display: flex; align-items: center; margin-bottom: 12px; cursor: pointer;">
+                            <input type="checkbox" id="toggle-znuny"
+                                style="margin-right: 10px; width: 18px; height: 18px; accent-color: var(--primary);">
+                            <span style="font-weight: 500;">Habilitar Anotações no Znuny</span>
+                        </label>
+                        <p class="field-help" style="margin-top: -8px; margin-bottom: 16px; margin-left: 28px;">
+                            Se desmarcado, nenhuma nota laranja será criada dentro do chamado.
+                        </p>
+
+                        <label style="display: flex; align-items: center; margin-bottom: 12px; cursor: pointer;">
+                            <input type="checkbox" id="toggle-multi"
+                                style="margin-right: 10px; width: 18px; height: 18px; accent-color: var(--primary);">
+                            <span style="font-weight: 500;">Enviar para múltiplos contatos (Mesmo ID)</span>
+                        </label>
+                        <p class="field-help" style="margin-top: -8px; margin-bottom: 16px; margin-left: 28px;">
+                            Se habilitado, o robô buscará todos os números no Digisac que tenham a tag
+                            <code>[ID_CLIENTE]</code> e enviará mensagem para todos eles.
+                        </p>
+
+                        <label style="display: flex; align-items: center; margin-bottom: 12px; cursor: pointer;">
+                            <input type="checkbox" id="toggle-group-send"
+                                style="margin-right: 10px; width: 18px; height: 18px; accent-color: var(--primary);">
+                            <span style="font-weight: 500;">Enviar para Grupos do Cliente no Digisac</span>
+                        </label>
+                        <p class="field-help" style="margin-top: -8px; margin-bottom: 0; margin-left: 28px;">
+                            Se habilitado, o robô também enviará a mensagem para grupos do Digisac cujo nome contenha
+                            a tag <code>[ID_CLIENTE]</code>. Útil para notificar grupos de WhatsApp de empresas.
+                        </p>
+                    </div>
+
+                    <div class="settings-actions">
+                        <button class="btn btn-primary" onclick="saveSettings()">Salvar Configurações</button>
+                    </div>
+                </div>
+            </section>
+        </section>
+    </main>
+
+    <!-- MODAL DE PREVIEW (individual) -->
+    <div class="modal-overlay" id="modal-overlay" style="display:none" onclick="closeModal(event)">
+        <div class="modal" id="modal">
+            <div class="modal-header">
+                <h3 id="modal-title">Preview da Mensagem</h3>
+                <button class="modal-close" onclick="closeModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="modal-contact-info" id="modal-contact-info"></div>
+                <div class="modal-message" id="modal-message"></div>
+            </div>
+            <div class="modal-footer">
+                <span class="modal-warning" id="modal-warning" style="display:none">
+                    ⚠️ Já enviado hoje
+                </span>
+                <button class="btn btn-ghost" onclick="closeModal()">Cancelar</button>
+                <button class="btn btn-success" id="modal-send-btn" onclick="sendFromModal()">
+                    Enviar via WhatsApp
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL DE CONFIRMAÇÃO (enviar todos) -->
+    <div class="modal-overlay" id="confirm-overlay" style="display:none" onclick="closeConfirmModal(event)">
+        <div class="modal modal-lg" id="confirm-modal">
+            <div class="modal-header">
+                <h3>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"
+                        style="display:inline;vertical-align:middle;margin-right:8px">
+                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                        <polyline points="22 4 12 14.01 9 11.01" />
+                    </svg>
+                    Confirmar Envio de Lembretes
+                </h3>
+                <button class="modal-close" onclick="closeConfirmModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <!-- Resumo -->
+                <div class="confirm-summary" id="confirm-summary">
+                    <div class="confirm-summary-item ready">
+                        <span class="confirm-count" id="confirm-will-send">0</span>
+                        <span>Prontos para enviar</span>
+                    </div>
+                    <div class="confirm-summary-item skip">
+                        <span class="confirm-count" id="confirm-will-skip">0</span>
+                        <span>Já enviados hoje</span>
+                    </div>
+                    <div class="confirm-summary-item not-found">
+                        <span class="confirm-count" id="confirm-not-found">0</span>
+                        <span>Contato não encontrado</span>
+                    </div>
+                </div>
+                <!-- Loading dentro do modal -->
+                <div class="confirm-loading" id="confirm-loading" style="display:none">
+                    <div class="spinner spinner-sm"></div>
+                    <span>Re-verificando chamados no Znuny...</span>
+                </div>
+                <!-- Lista de Destinatários -->
+                <div class="confirm-recipients-list" id="confirm-recipients-list">
+                </div>
+            </div>
+            <div class="modal-footer confirm-footer">
+                <button class="btn btn-ghost" onclick="closeConfirmModal()">Cancelar</button>
+                <button class="btn btn-amber" id="btn-schedule-open" onclick="openScheduleModal()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                        <circle cx="12" cy="12" r="10" />
+                        <polyline points="12 6 12 12 16 14" />
+                    </svg>
+                    Agendar Envio
+                </button>
+                <button class="btn btn-success" id="btn-confirm-send" onclick="confirmSendAll()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                        <line x1="22" y1="2" x2="11" y2="13" />
+                        <polygon points="22 2 15 22 11 13 2 9 22 2" />
+                    </svg>
+                    Enviar Agora
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL DE AGENDAMENTO -->
+    <div class="modal-overlay" id="schedule-overlay" style="display:none" onclick="closeScheduleModal(event)">
+        <div class="modal" id="schedule-modal">
+            <div class="modal-header">
+                <h3>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"
+                        style="display:inline;vertical-align:middle;margin-right:8px">
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                        <line x1="16" y1="2" x2="16" y2="6" />
+                        <line x1="8" y1="2" x2="8" y2="6" />
+                        <line x1="3" y1="10" x2="21" y2="10" />
+                    </svg>
+                    Agendar Envio Automático
+                </h3>
+                <button class="modal-close" onclick="closeScheduleModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p class="schedule-info">
+                    No horário agendado, o sistema irá <strong>re-verificar automaticamente</strong> a lista de chamados
+                    pendentes no Znuny e enviar os lembretes atualizados.
+                </p>
+                <div class="schedule-form">
+                    <div class="form-group schedule-type-group">
+                        <label class="radio-label">
+                            <input type="radio" name="schedule-type" value="unico" checked
+                                onchange="toggleScheduleType()"> Envio Único
+                        </label>
+                        <label class="radio-label">
+                            <input type="radio" name="schedule-type" value="recorrente" onchange="toggleScheduleType()">
+                            Toda Semana
+                        </label>
+                    </div>
+
+                    <div class="form-group" id="group-date">
+                        <label for="schedule-date">Data do Envio</label>
+                        <input type="date" id="schedule-date" class="form-input">
+                    </div>
+
+                    <div class="form-group" id="group-weekdays" style="display:none;">
+                        <label>Dias da Semana</label>
+                        <div class="weekdays-selector">
+                            <label><input type="checkbox" name="weekday" value="mon"> Seg</label>
+                            <label><input type="checkbox" name="weekday" value="tue"> Ter</label>
+                            <label><input type="checkbox" name="weekday" value="wed"> Qua</label>
+                            <label><input type="checkbox" name="weekday" value="thu"> Qui</label>
+                            <label><input type="checkbox" name="weekday" value="fri"> Sex</label>
+                            <label><input type="checkbox" name="weekday" value="sat"> Sáb</label>
+                            <label><input type="checkbox" name="weekday" value="sun"> Dom</label>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="schedule-time">Hora da Execução</label>
+                        <input type="time" id="schedule-time" class="form-input" value="09:00">
+                    </div>
+                </div>
+                <div class="schedule-preview" id="schedule-preview">
+                    <!-- Mostra data/hora formatada -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-ghost" onclick="closeScheduleModal()">Cancelar</button>
+                <button class="btn btn-amber" id="btn-confirm-schedule" onclick="confirmSchedule()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                        <line x1="16" y1="2" x2="16" y2="6" />
+                        <line x1="8" y1="2" x2="8" y2="6" />
+                        <line x1="3" y1="10" x2="21" y2="10" />
+                    </svg>
+                    Confirmar Agendamento
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- TOAST -->
+    <div class="toast-container" id="toast-container"></div>
+
+    <script src="/static/app.js"></script>
+</body>
+
+</html>
